@@ -1,0 +1,17 @@
+[project]
+name = "multi-objective-scalarization-techniques-for-RL"
+version = "0.1.0"
+description = "This project explores multi-objective scalarization techniques for approximating the Pareto front of a multi-objective RL problem."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "matplotlib>=3.10.9",
+    "mo-gym>=0.2.1",
+    "mo-gymnasium>=1.3.2",
+    "numpy>=2.2.6",
+    "scikit-learn>=1.7.2",
+    "scipy>=1.15.3",
+    "seaborn>=0.13.2",
+    "torch>=2.11.0",
+    "torchvision>=0.26.0",
+]
