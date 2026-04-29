@@ -79,7 +79,7 @@ This is opposed to ESR, which would scalarize each per-step reward $f_{\mathbf{w
 
 We train two families of agents for each $(p, \mathbf{w})$ configuration:
 
-- **Tabular Monte Carlo Q-learning** — maintains a table $Q[s, \text{reward\_dim}, \text{action}]$ of expected cumulative vector rewards. After each episode, all state–action pairs are updated via first-visit Monte Carlo returns (vector returns, never scalarized during learning). Scalarization enters only at action selection, where the action minimizing $f_{\mathbf{w}}(Q[s, :, \cdot])$ is chosen.
+- **Tabular Monte Carlo Q-learning** — maintains a table $Q[s, \text{reward-dim}, \text{action}]$ of expected cumulative vector rewards. After each episode, all state–action pairs are updated via first-visit Monte Carlo returns (vector returns, never scalarized during learning). Scalarization enters only at action selection, where the action minimizing $f_{\mathbf{w}}(Q[s, :, \cdot])$ is chosen.
 
 - **Cross-Entropy Method (CEM)** — a population-based policy-search algorithm. Each iteration generates $N$ full episode rollouts under a softmax tabular policy, computes the cumulative vector return $\mathbf{G}_0$ for each rollout, scalarizes with $f_{\mathbf{w}}$, and selects the top-$k$ elite rollouts (lowest Lp-distance to $\mathbf{r}^\star$). The policy logits are then updated by maximum-likelihood estimation on the elite trajectories.
 
