@@ -161,8 +161,8 @@ def main() -> None:
     parser.add_argument(
         "--n_weights",
         type=int,
-        default=10,
-        help="Number of weight vectors (linearly spaced α in [0.05, 0.95]).  Default: 10.",
+        default=38,
+        help="Number of weight vectors (linearly spaced α in [0.05, 0.95]).  Default: 38.",
     )
     parser.add_argument(
         "--model",
