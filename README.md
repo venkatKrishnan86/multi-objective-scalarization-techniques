@@ -53,17 +53,35 @@ The Deep Sea Treasure environment is ideal for this study because:
 
 ## Methodology
 
-For each value of $p$ and each weight vector $\mathbf{w} \succ 0$ (i.e., $\mathbf{w}$ lies in the strictly positive orthant cone, $w_i > 0$ for all $i$), we define the scalarized reward using the **utopian point** $\mathbf{z}$ (component-wise maximum over the Pareto front) as:
+For each value of $p$ and each weight vector $\mathbf{w} \succ 0$ (i.e., $\mathbf{w}$ lies in the strictly positive orthant cone, $w_i > 0$ for all $i$), we define the Lp-norm scalarization using the **utopian point** $\mathbf{r}^\star$ (component-wise maximum over the Pareto front) as:
 
-$$r_{\text{scalar}} = \left( \sum_i w_i \, |r_i - z_i|^p \right)^{1/p}$$
+$$f_{\mathbf{w}}(\mathbf{r}) = \left( \sum_i \left| w_i \left( r_i - r^\star_i \right) \right|^p \right)^{1/p}$$
 
-with the limit $p \to \infty$ corresponding to:
+with the limit $p \to \infty$ (Chebyshev scalarization) corresponding to:
 
-$$r_{\text{scalar}} = \max_i \, w_i \, |r_i - z_i|$$
+$$f_{\mathbf{w}}(\mathbf{r}) = \max_i \left| w_i \left( r_i - r^\star_i \right) \right|$$
 
-The utopian point $\mathbf{z}$ is computed once from the environment's true Pareto front and cached to `outputs/<env_name>/utopian.npy`.
+The utopian point $\mathbf{r}^\star$ is computed once from the environment's true Pareto front and cached to `outputs/<env_name>/utopian.npy`.
 
-We train a standard RL agent (e.g., Q-learning or DQN) for each $(p, \mathbf{w})$ combination, collect the resulting policy's expected return vector, and plot all solutions to approximate the Pareto front.
+### SER vs ESR
+
+We adopt the **Scalarized Expected Returns (SER)** objective rather than Expected Scalarized Returns (ESR).  Under SER, the agent first accumulates the full episode's cumulative vector return:
+
+$$\mathbf{G}_0 = \sum_{t \geq 0} \gamma^t \, \mathbf{r}_t \qquad (\text{vector return})$$
+
+and then applies the scalarization to the total:
+
+$$G_0^{\text{scalar}} = f_{\mathbf{w}}(\mathbf{G}_0)$$
+
+This is opposed to ESR, which would scalarize each per-step reward $f_{\mathbf{w}}(\mathbf{r}_t)$ and sum the scalars. In Deep Sea Treasure, all intermediate steps yield the same non-terminal reward vector $[0, -1]$; ESR therefore collapses every non-terminal step to the same scalar, destroying credit-assignment signal. SER preserves the full vector structure until the end of the episode, giving the scalarization function access to the cumulative trade-off actually realized by the policy.
+
+### Agents
+
+We train two families of agents for each $(p, \mathbf{w})$ configuration:
+
+- **Tabular Monte Carlo Q-learning** — maintains a table $Q[s, \text{reward\_dim}, \text{action}]$ of expected cumulative vector rewards. After each episode, all state–action pairs are updated via first-visit Monte Carlo returns (vector returns, never scalarized during learning). Scalarization enters only at action selection, where the action minimizing $f_{\mathbf{w}}(Q[s, :, \cdot])$ is chosen.
+
+- **Cross-Entropy Method (CEM)** — a population-based policy-search algorithm. Each iteration generates $N$ full episode rollouts under a softmax tabular policy, computes the cumulative vector return $\mathbf{G}_0$ for each rollout, scalarizes with $f_{\mathbf{w}}$, and selects the top-$k$ elite rollouts (lowest Lp-distance to $\mathbf{r}^\star$). The policy logits are then updated by maximum-likelihood estimation on the elite trajectories.
 
 **Evaluation metrics [1]:**
 - Coverage of the true Pareto front
@@ -78,7 +96,10 @@ We train a standard RL agent (e.g., Q-learning or DQN) for each $(p, \mathbf{w})
 .
 ├── pyproject.toml          # Project dependencies (managed with uv)
 ├── README.md
-├── main.py                 # Entry point
+├── agent.py                # BaseAgent, TabularAgent, CEMAgent, DQNAgent
+├── dqn.py                  # MultiObjectiveDQN network architecture
+├── utils.py                # Scalarization functions, ReplayBuffer, utopian computation
+├── train.py                # Sweep training script (env × p × weight)
 ├── documents/              # Reports, notes, and references
 └── MOML_Final_Project_Proposal.pdf
 ```

@@ -83,7 +83,7 @@ class BaseAgent(ABC):
     epsilon : float
         Initial epsilon for epsilon-greedy exploration.  Default: ``1.0``.
     epsilon_min : float
-        Minimum epsilon after decay.  Default: ``0.05``.
+        Minimum epsilon after decay.  Default: ``0.01``.
     epsilon_decay : float
         Multiplicative decay applied to epsilon per step.  Default: ``0.9995``.
     """
@@ -95,7 +95,7 @@ class BaseAgent(ABC):
         p: float,
         gamma: float = 0.99,
         epsilon: float = 1.0,
-        epsilon_min: float = 0.05,
+        epsilon_min: float = 0.01,
         epsilon_decay: float = 0.9995,
     ) -> None:
         assert np.all(weight > 0), (
@@ -197,7 +197,7 @@ class DQNAgent(BaseAgent):
     epsilon : float
         Initial epsilon for epsilon-greedy exploration.  Default: ``1.0``.
     epsilon_min : float
-        Minimum epsilon after decay.  Default: ``0.05``.
+        Minimum epsilon after decay.  Default: ``0.01``.
     epsilon_decay : float
         Multiplicative decay applied to epsilon after each environment step.
         Default: ``0.99975`` (decays to ~0.08 over 10,000 steps).
@@ -233,7 +233,7 @@ class DQNAgent(BaseAgent):
         lr: float = 1e-3,
         gamma: float = 0.99,
         epsilon: float = 1.0,
-        epsilon_min: float = 0.05,
+        epsilon_min: float = 0.01,
         epsilon_decay: float = 0.99975,
         buffer_capacity: int = 2_000,
         warmup_frac: float = 0.2,
@@ -506,7 +506,7 @@ class TabularAgent(BaseAgent):
     epsilon : float
         Default: ``1.0``.
     epsilon_min : float
-        Default: ``0.05``.
+        Default: ``0.01``.
     epsilon_decay : float
         Per-step decay.  Default: ``0.9995``.
     """
@@ -519,7 +519,7 @@ class TabularAgent(BaseAgent):
         alpha: float = 0.1,
         gamma: float = 0.99,
         epsilon: float = 1.0,
-        epsilon_min: float = 0.05,
+        epsilon_min: float = 0.01,
         epsilon_decay: float = 0.9995,
         **kwargs,
     ) -> None:
@@ -658,7 +658,7 @@ class CEMAgent(BaseAgent):
     epsilon : float
         Initial exploration rate for ``simulate()``.  Default: ``0.1``.
     epsilon_min : float
-        Default: ``0.05``.
+        Default: ``0.01``.
     epsilon_decay : float
         Per-step decay in ``simulate()``.  Default: ``0.9999``.
     """
@@ -674,7 +674,7 @@ class CEMAgent(BaseAgent):
         lr: float = 0.3,
         smooth: float = 1e-3,
         epsilon: float = 0.1,
-        epsilon_min: float = 0.05,
+        epsilon_min: float = 0.01,
         epsilon_decay: float = 0.9999,
         **kwargs,
     ) -> None:

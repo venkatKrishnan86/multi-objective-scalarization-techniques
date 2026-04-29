@@ -158,7 +158,7 @@ def scalarize_q(
     diff = (q_vec - utopian).abs()
     if p == float("inf"):
         return (weight * diff).max(dim=1).values
-    return (weight * diff.pow(p)).sum(dim=1).pow(1.0 / p)
+    return ((weight * diff).pow(p)).sum(dim=1).pow(1.0 / p)
 
 
 def scalarize_vec(
@@ -189,4 +189,4 @@ def scalarize_vec(
     diff = np.abs(vec - utopian)
     if p == float("inf"):
         return (weight * diff).max(axis=-1)
-    return ((weight * diff ** p).sum(axis=-1)) ** (1.0 / p)
+    return (((weight * diff) ** p).sum(axis=-1)) ** (1.0 / p)
