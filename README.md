@@ -100,6 +100,7 @@ We train two families of agents for each $(p, \mathbf{w})$ configuration:
 ├── dqn.py                  # MultiObjectiveDQN network architecture
 ├── utils.py                # Scalarization functions, ReplayBuffer, utopian computation
 ├── train.py                # Sweep training script (env × p × weight)
+├── example_plots/          # Representative result figures (used in README)
 ├── documents/              # Reports, notes, and references
 └── MOML_Final_Project_Proposal.pdf
 ```
@@ -132,7 +133,52 @@ source .venv/bin/activate
 
 ## Results
 
-*(To be filled in after experiments are complete.)*
+Each plot shows the true Pareto front (thick black staircase), the utopian point $\mathbf{r}^*$ (blue star), the best achieved reward per weight vector (red hollow circle = on Pareto front, grey hollow circle = suboptimal), and the Lp-norm scalarization level-set curve (red dashed) that passes through each achieved point.
+
+---
+
+### Convex Pareto Front (`deep-sea-treasure-v0`) — Tabular MC
+
+| $p = 1$ (Linear) | $p = 2$ (Euclidean) | $p = \infty$ (Chebyshev) |
+|:---:|:---:|:---:|
+| ![p=1](example_plots/convex_tabular_p1.png) | ![p=2](example_plots/convex_tabular_p2.png) | ![p=inf](example_plots/convex_tabular_pinf.png) |
+
+**Observation:** On the convex front, all three norms recover most Pareto-optimal solutions. Linear scalarization ($p=1$) produces diagonal level-set curves and struggles with weight vectors that select dense mid-range solutions. Chebyshev ($p=\infty$) produces L-shaped contours that visibly "pin" each solution to a corner of the front.
+
+---
+
+### Convex Pareto Front (`deep-sea-treasure-v0`) — CEM
+
+| $p = 2$ (Euclidean) |
+|:---:|
+| ![p=2 CEM](example_plots/convex_cem_p2.png) |
+
+---
+
+### Concave Pareto Front (`deep-sea-treasure-concave-v0`) — Tabular MC
+
+| $p = 1$ (Linear) | $p = 2$ (Euclidean) | $p = \infty$ (Chebyshev) |
+|:---:|:---:|:---:|
+| ![p=1](example_plots/concave_tabular_p1.png) | ![p=2](example_plots/concave_tabular_p2.png) | ![p=inf](example_plots/concave_tabular_pinf.png) |
+
+**Observation:** On the concave front, linear scalarization ($p=1$) fails to recover solutions on the concave segments — the diagonal level-set curves cannot be tangent to the concave region, so many weight vectors collapse to the same supported extreme points (grey circles cluster away from the front). Higher-order norms ($p \geq 2$) and Chebyshev scalarization recover significantly more of the concave Pareto front by using curved or L-shaped contours that can be tangent to non-convex regions.
+
+---
+
+### Concave Pareto Front (`deep-sea-treasure-concave-v0`) — CEM
+
+| $p = 2$ (Euclidean) | $p = \infty$ (Chebyshev) |
+|:---:|:---:|
+| ![p=2 CEM](example_plots/concave_cem_p2.png) | ![p=inf CEM](example_plots/concave_cem_pinf.png) |
+
+**Observation:** CEM achieves reasonable coverage on the concave front but underperforms Tabular MC, particularly for Chebyshev scalarization ($p=\infty$) where Tabular MC's exact Q-table gives it a stronger advantage — CEM's population-based search introduces more variance and may converge to suboptimal policies before the L-shaped contour aligns with the correct Pareto point.
+
+## LLM Usage Disclosure
+
+The completion of this project was aided by the following LLM:
+- **Model:** Claude 4.6 Sonnet
+- **API:** Anthropic
+The content of this repository has been verified by us manually for accuracy, originality, and completeness. Any errors or omissions are solely our responsibility.
 
 ---
 
