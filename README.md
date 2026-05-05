@@ -1,17 +1,16 @@
 # Evaluating Lp-Norm Scalarization Methods for Pareto Front Approximation in Multi-Objective Reinforcement Learning
 
-**ECE 406 — Introduction to Multi-Objective Machine Learning**
-**University of Rochester, Spring 2026**
-**Authors:** Jiajun Wu, Venkatakrishnan V K
-**Instructor:** Lisha Chen
+**ECE 406 — Introduction to Multi-Objective Machine Learning — University of Rochester, Spring 2026**
 
-> Code: [github.com/venkatKrishnan86/multi-objective-scalarization-techniques](https://github.com/venkatKrishnan86/multi-objective-scalarization-techniques)
+**Authors:** Jiajun Wu, Venkatakrishnan V K
+
+**Instructor:** Lisha Chen
 
 ---
 
 ## Problem Description
 
-This project systematically evaluates how Lp-norm scalarization methods affect the quality and diversity of solutions learned in a Multi-Objective Reinforcement Learning (MORL) setting.
+This project systematically evaluates how $L_p$-norm scalarization methods affect the quality and diversity of solutions learned in a Multi-Objective Reinforcement Learning (MORL) setting.
 
 We train RL agents on the **Deep Sea Treasure** benchmark from [MO-Gymnasium](https://mo-gymnasium.farama.org/), using both:
 
@@ -20,7 +19,7 @@ We train RL agents on the **Deep Sea Treasure** benchmark from [MO-Gymnasium](ht
 
 and sweep over the scalarization parameter:
 
-$$p \in \{1, 2, 4, 8, \infty\}$$
+$$p \in \\left\\{ 1, 2, 4, 8, \infty \\right\\}$$
 
 where $p = 1$ recovers **linear scalarization** and $p = \infty$ recovers **Chebyshev (L∞) scalarization**.
 
@@ -30,7 +29,7 @@ where $p = 1$ recovers **linear scalarization** and $p = \infty$ recovers **Cheb
 
 Many real-world decision-making problems require balancing multiple competing objectives simultaneously. Standard RL methods assume a single scalar reward, which encodes all preferences in advance and limits post-hoc explainability. MORL addresses this by modeling rewards as vectors and computing policies that represent diverse trade-offs among objectives.
 
-In MORL, the agent receives a reward vector $\mathbf{r}_t \in \mathbb{R}^n$ at each time step, and the discounted cumulative (vector) return is:
+In MORL, the agent receives a reward vector $\mathbf{r}_t \in ℝ^n$ at each time step, and the discounted cumulative (vector) return is:
 
 $$\mathbf{G}_t = \sum_{k=t}^{T-1} \gamma^{k-t} \mathbf{r}_k$$
 
@@ -55,7 +54,7 @@ The Deep Sea Treasure environment is ideal for this study because:
 | Environment | Deep Sea Treasure (MO-Gymnasium) |
 | Variants | `deep-sea-treasure-v0` (convex), `deep-sea-treasure-concave-v0` (concave) |
 | Objectives | (1) Treasure value, (2) Time penalty (negative reward per step) |
-| Scalarization parameter | $p \in \{1, 2, 4, 8, \infty\}$ |
+| Scalarization parameter | $p \in \\{1, 2, 4, 8, \infty\\}$ |
 | State space | Discrete grid (submarine position) |
 | Action space | 4 movements (up, down, left, right) |
 | Episode length | Up to 100 steps |
@@ -70,13 +69,13 @@ Deep Sea Treasure is a classical MORL problem in which an agent controls a subma
 
 ### Utopian Point
 
-The utopian point $\mathbf{G}^\star \in \mathbb{R}^n$ represents the theoretical optimum in each objective dimension:
+The utopian point $\mathbf{G}^\star \in ℝ^n$ represents the theoretical optimum in each objective dimension:
 
 $$G^\star_i = \max_\pi G_i(\pi), \quad \forall i \in [n]$$
 
 By definition, for any achievable return vector $\mathbf{G}$:
 
-$$\mathbf{G}^\star - \mathbf{G} \in \mathbb{R}^n_{\geq 0}$$
+$$\mathbf{G}^\star - \mathbf{G} \in ℝ^n_{\geq 0}$$
 
 i.e., the difference always lies in the non-negative orthant. $\mathbf{G}^\star$ is computed once from the environment's true Pareto front and cached to `outputs/<env_name>/utopian.npy`.
 
@@ -84,17 +83,17 @@ i.e., the difference always lies in the non-negative orthant. $\mathbf{G}^\star$
 
 A return vector $\mathbf{G}^k$ is **non-dominated** if there does not exist another vector $\mathbf{G}$ such that $\mathbf{G} \succeq \mathbf{G}^k$ and $\mathbf{G} \neq \mathbf{G}^k$. The Pareto front $\mathcal{P}$ is the set of all non-dominated return vectors:
 
-$$\mathcal{P} = \left\{ \mathbf{G}^k \in \mathbb{R}^n \;\middle|\; \nexists\, \mathbf{G} \in \mathbb{R}^n \text{ s.t. } \mathbf{G} - \mathbf{G}^k \in \mathbb{R}^n_{\geq 0} \setminus \{0\} \right\}$$
+$$\mathcal{P} = \left\\{ \mathbf{G}^k \in ℝ^n \ \mid \ \nexists \mathbf{G} \in ℝ^n \text{ s.t. } \mathbf{G} - \mathbf{G}^k \in ℝ^n_{\geq 0} \setminus \{0 \} \\right\\}$$
 
-### Lp Scalarization
+### $L_p$ Scalarization
 
 For a weight vector $\mathbf{w} \succ 0$ (strictly positive orthant, $w_i > 0$ for all $i$) and a return vector $\mathbf{G}$, the scalarized utility function is:
 
-$$u(\mathbf{G}) = \left\| \operatorname{diag}(\mathbf{w})\,(\mathbf{G}^\star - \mathbf{G}) \right\|_p = \left( \sum_i \left| w_i \left( G^\star_i - G_i \right) \right|^p \right)^{1/p}$$
+$$u(\mathbf{G}) = \\left\\| \ \mathrm{diag}(\mathbf{w})(\mathbf{G}^\star - \mathbf{G}) \\right\\|_p = \\left( \sum_i | w_i ( G^\star_i - G_i ) |^p \\right)^{1/p}$$
 
 with the Chebyshev limit ($p \to \infty$):
 
-$$u(\mathbf{G}) = \max_i \left| w_i \left( G^\star_i - G_i \right) \right|$$
+$$u(\mathbf{G}) = \max_i | w_i ( G^\star_i - G_i ) |$$
 
 This is a weighted distance from the utopian point; minimizing $u(\mathbf{G})$ maximizes how close the achieved return is to the ideal.
 
@@ -102,15 +101,15 @@ This is a weighted distance from the utopian point; minimizing $u(\mathbf{G})$ m
 
 We adopt the **Scalarized Expected Returns (SER)** objective rather than Expected Scalarized Returns (ESR). Under SER, the agent first accumulates the full episode's cumulative vector return $\mathbf{G}_0$ and then scalarizes:
 
-$$J(\pi_\mathbf{w}) = u\!\left(\mathbb{E}[\mathbf{G}(\pi_\mathbf{w})]\right)$$
+$$J(\pi_\mathbf{w}) = u\\left(𝔼[\mathbf{G}(\pi_\mathbf{w})]\\right)$$
 
-Under ESR the scalarization would be applied per-step. In Deep Sea Treasure, all intermediate steps yield the same non-terminal reward $[0, -1]$; ESR collapses every non-terminal step to the same scalar, destroying credit-assignment signal. SER preserves the full vector structure until the episode ends. Importantly, SER and ESR are equivalent **only** for linear scalarization ($p = 1$), since the utility function $u(\cdot)$ is non-linear for $p > 1$; in general, $u(\mathbb{E}[\mathbf{G}]) \neq \mathbb{E}[u(\mathbf{G})]$.
+Under ESR the scalarization would be applied per-step. In Deep Sea Treasure, all intermediate steps yield the same non-terminal reward $[0, -1]$; ESR collapses every non-terminal step to the same scalar, destroying credit-assignment signal. SER preserves the full vector structure until the episode ends. Importantly, SER and ESR are equivalent **only** for linear scalarization ($p = 1$), since the utility function $u(\cdot)$ is non-linear for $p > 1$; in general, $u(𝔼[\mathbf{G}]) \neq 𝔼[u(\mathbf{G})]$.
 
 ### Weight Selection
 
 We construct a discrete set of weight vectors from the 2-D simplex $\Delta^2$, linearly spaced as:
 
-$$\mathbf{w} \in \{(w_1, w_2) \mid w_1 + w_2 = 1,\; w_1 \in \{0.05, 0.10, \ldots, 0.95\}\}$$
+$$\mathbf{w} \in \\left\\{(w_1, w_2) \mid w_1 + w_2 = 1,\; w_1 \in \\left\\{0.05, 0.10, \ldots, 0.95\\right\\}\\right\\}$$
 
 excluding the degenerate endpoints $(1, 0)$ and $(0, 1)$. This yields **38 uniformly distributed preference vectors** over the simplex. A separate policy is trained independently for each weight vector — no parameter sharing across weights.
 
@@ -120,7 +119,7 @@ We train two families of agents for each $(p, \mathbf{w})$ configuration:
 
 - **Tabular Q-learning** — maintains a table $Q[s, \text{reward-dim}, \text{action}]$ of expected cumulative vector rewards. After each episode, all state–action pairs are updated via first-visit returns (vector returns, never scalarized during learning). Scalarization enters only at action selection, where the action minimising $u(Q[s, :, \cdot])$ is chosen. An $\varepsilon$-greedy policy is used during training.
 
-- **Cross-Entropy Method (CEM)** — a population-based policy-search algorithm. Each iteration samples $N$ candidate policy parameters $\theta_i \sim \mathcal{N}(\mu, \Sigma)$, evaluates full episode rollouts, computes the cumulative vector return $\mathbf{G}_0$ for each rollout, scalarizes with $u(\cdot)$, and selects the top-$k$ elite rollouts (lowest $L_p$-distance to $\mathbf{G}^\star$). The distribution is then updated via the elite empirical mean and covariance:
+- **Cross-Entropy Method (CEM)** — a population-based policy-search algorithm. Each iteration samples $N$ candidate policy parameters $\theta_i \sim \mathcal{N}(\mu, \Sigma)$, evaluates full episode rollouts, computes the cumulative vector return $\mathbf{G}_0$ for each rollout, scalarizes with $u(\cdot)$, and selects the top-k elite rollouts (lowest $L_p$-distance to $\mathbf{G}^\star$). The distribution is then updated via the elite empirical mean and covariance:
 
 $$\mu \leftarrow \frac{1}{|\mathcal{E}|}\sum_{\theta_i \in \mathcal{E}} \theta_i, \qquad \Sigma \leftarrow \frac{1}{|\mathcal{E}|}\sum_{\theta_i \in \mathcal{E}} (\theta_i - \mu)(\theta_i - \mu)^\top$$
 
@@ -128,9 +127,9 @@ $$\mu \leftarrow \frac{1}{|\mathcal{E}|}\sum_{\theta_i \in \mathcal{E}} \theta_i
 
 We evaluate the quality of the learned policy set using the **hypervolume (HV)** indicator [2], which measures the volume of the objective space dominated by a set of solutions with respect to a reference point $\mathbf{G}^{\text{ref}}$ chosen strictly below all achievable returns:
 
-$$\text{HV}(S) = \lambda\!\left( \bigcup_{\mathbf{G} \in S} \left\{ \mathbf{x} \in \mathbb{R}^n \;\middle|\; \mathbf{G}^{\text{ref}} \preceq \mathbf{x} \preceq \mathbf{G} \right\} \right)$$
+$$\text{HV}(S) = \lambda\\!\\left( \bigcup_{\mathbf{G} \in S} \\left\\{ \mathbf{x} \in ℝ^n \ \mid \ \mathbf{G}^{\text{ref}} \preceq \mathbf{x} \preceq \mathbf{G} \\right\\} \\right)$$
 
-where $\lambda(\cdot)$ denotes the **Lebesgue measure** (volume), and each set $\{\mathbf{x} \mid \mathbf{G}^{\text{ref}} \preceq \mathbf{x} \preceq \mathbf{G}\}$ describes the points contained in the **hyper-rectangle** anchored at $\mathbf{G}^{\text{ref}}$ and extending to $\mathbf{G}$ component-wise. The hypervolume is therefore the total volume of the union of these hyper-rectangles, one per solution in $S$. In our two-dimensional setting this reduces to a union of axis-aligned rectangles, computed efficiently via a sweepline algorithm.
+where $\lambda(\cdot)$ denotes the **Lebesgue measure** (volume), and each set $\\left\\{\mathbf{x} \mid \mathbf{G}^{\text{ref}} \preceq \mathbf{x} \preceq \mathbf{G}\\right\\}$ describes the points contained in the **hyper-rectangle** anchored at $\mathbf{G}^{\text{ref}}$ and extending to $\mathbf{G}$ component-wise. The hypervolume is therefore the total volume of the union of these hyper-rectangles, one per solution in $S$. In our two-dimensional setting this reduces to a union of axis-aligned rectangles, computed efficiently via a sweepline algorithm.
 
 To enable comparison across environments, we compute the **normalized hypervolume**:
 
