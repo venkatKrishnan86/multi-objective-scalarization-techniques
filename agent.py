@@ -520,7 +520,7 @@ class TabularAgent(BaseAgent):
         gamma: float = 0.99,
         epsilon: float = 1.0,
         epsilon_min: float = 0.01,
-        epsilon_decay: float = 0.9995,
+        epsilon_decay: float = 0.9998,
         **kwargs,
     ) -> None:
         super().__init__(env, weight, p, gamma, epsilon, epsilon_min, epsilon_decay)

@@ -161,6 +161,85 @@ def plot_scalarization(
         ax.plot(r0[mask], r1, '--', color="red", linewidth=1, label=label)
     return ax
 
+def plot_hypervolume_bars(
+    env_name: str,
+    models: list[str] | None = None,
+    ps: list[float] | None = None,
+    outputs_dir: str = "outputs",
+    ax: plt.Axes | None = None,
+) -> plt.Axes:
+    """Plot a grouped bar chart of normalised hypervolume per p value.
+
+    For a given environment, reads the pre-computed normalised hypervolume from
+    ``outputs/<env_name>/<model>/p_<p>/hypervolume_normalized.npy`` for every
+    (model, p) combination and plots them as grouped bars — one group per p
+    value, one bar per model.
+
+    Parameters
+    ----------
+    env_name : str
+        MO-Gymnasium environment id.
+    models : list of str or None
+        Agent architectures to include.  Default: ``["tabular", "cem"]``.
+    ps : list of float or None
+        Lp-norm exponents to include.  Default: ``[1.0, 2.0, 4.0, 8.0, inf]``.
+    outputs_dir : str
+        Root outputs directory.  Default: ``"outputs"``.
+    ax : matplotlib.axes.Axes or None
+        Axes to draw on.  A new figure is created if ``None``.
+
+    Returns
+    -------
+    matplotlib.axes.Axes
+    """
+    if models is None:
+        models = ["tabular", "cem"]
+    if ps is None:
+        ps = [1.0, 2.0, 4.0, 8.0, float("inf")]
+
+    p_labels = ["∞" if p == float("inf") else str(p) for p in ps]
+
+    # Load normalised HV values
+    data = {}
+    for model in models:
+        values = []
+        for p in ps:
+            p_tag = "inf" if p == float("inf") else str(p)
+            fpath = Path(outputs_dir) / env_name / model / f"p_{p_tag}" / "hypervolume_normalized.npy"
+            values.append(float(np.load(fpath)) if fpath.exists() else float("nan"))
+        data[model] = values
+
+    if ax is None:
+        _, ax = plt.subplots(figsize=(9, 6))
+
+    x         = np.arange(len(ps))
+    n_models  = len(models)
+    bar_width = 0.7 / n_models
+    colors    = ["steelblue", "darkorange", "seagreen", "crimson"]
+
+    for i, model in enumerate(models):
+        offset = (i - (n_models - 1) / 2) * bar_width
+        ax.bar(x + offset, data[model], bar_width,
+               label=model, color=colors[i % len(colors)], alpha=0.85,
+               edgecolor="black", linewidth=0.5)
+
+    ax.axhline(1.0, color="black", linestyle="--", linewidth=1.2,
+               label="Pareto front (upper bound)")
+
+    ax.set_xticks(x)
+    ax.set_xticklabels([f"p = {l}" for l in p_labels], fontsize=11)
+    ax.set_xlabel("Lp norm  $p$", fontsize=12)
+    ax.set_ylabel("Normalised Hypervolume", fontsize=12)
+    ax.set_ylim(0, 1.12)
+    ax.set_title(f"Normalised Hypervolume — {env_name}", fontsize=12)
+    ax.legend(fontsize=10, loc="upper center", bbox_to_anchor=(0.5, -0.15),
+              ncol=len(models) + 1, borderaxespad=0, frameon=True)
+    ax.yaxis.grid(True, alpha=0.4)
+    ax.set_axisbelow(True)
+
+    return ax
+
+
 def plot_utopian(
     env_name: str,
     ax: plt.Axes,
@@ -211,7 +290,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--save",
         action="store_true",
-        help="Save each figure to outputs/<env>/pareto_front_p_<p>.png",
+        help="Save each figure to the corresponding outputs directory.",
+    )
+    parser.add_argument(
+        "--hv",
+        action="store_true",
+        help="Plot normalised hypervolume bar chart instead of Pareto front.",
     )
     parser.add_argument(
         "--last_n",
@@ -220,6 +304,26 @@ if __name__ == "__main__":
         help="Number of episodes to average for the achieved reward.  Default: 50",
     )
     args = parser.parse_args()
+
+    if args.hv:
+        for env_name in args.env:
+            fig, ax = plt.subplots(figsize=(9, 5))
+            plot_hypervolume_bars(
+                env_name=env_name,
+                models=["tabular", "cem"],
+                ps=[1.0, 2.0, 4.0, 8.0, float("inf")],
+                outputs_dir=args.outputs_dir,
+                ax=ax,
+            )
+            fig.tight_layout()
+            if args.save:
+                out_dir = Path(args.outputs_dir) / env_name
+                out_dir.mkdir(parents=True, exist_ok=True)
+                save_path = out_dir / "hypervolume_bars.png"
+                fig.savefig(save_path, dpi=150, bbox_inches="tight")
+                print(f"Saved to {save_path}")
+            plt.show()
+        import sys; sys.exit(0)
 
     for env_name in args.env:
         # Discover available p directories
